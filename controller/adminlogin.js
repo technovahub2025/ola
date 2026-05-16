@@ -8,17 +8,29 @@ const adminlogin = async (req, res) => {
 
     // Validation
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        message: "All fields are required",
+      });
     }
 
-    const user = await User.findOne({ email });
+    // IMPORTANT FIX
+    const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
     // Generate JWT
@@ -35,9 +47,10 @@ const adminlogin = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        
+        role: user.role,
       },
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Login failed",
