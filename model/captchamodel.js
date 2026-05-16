@@ -6,17 +6,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
-      trim: true
+      trim: true,
+      unique: true
     },
 
     captcha: {
       type: String,
-      required: true
+      default: null
     },
 
     expiresAt: {
       type: Date,
-      required: true
+      default: null
     }
   },
   { timestamps: true }
