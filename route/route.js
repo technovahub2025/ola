@@ -35,7 +35,10 @@ router.post("/bookinghistory/:id", userprofile);
 router.get("/users", userprofile);
 
 
+//forgot password//
 
+
+router.put("forgot-password",forgotPassword);
 
 // Location routes
 router.post("/location/pickupanddrop", locationcontroller);
