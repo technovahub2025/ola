@@ -4,63 +4,113 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const { 
-  handleDriverOnline, 
-  handleDriverOffline, 
-  handleManualOffline, 
-  getOnlineDrivers,
-  notifyBookingAssignment,
-  notifyBookingStatusUpdate
+
+const {
+  handleDriverOnline,
+  handleDriverOffline,
+  handleManualOffline,
+  getOnlineDrivers
 } = require("./controller/websocket");
-const { 
-  createBooking, 
-  assignBookingToDriver, 
-  getDriverBookings, 
-  updateBookingStatus, 
-  getAllBookings,
+
+const {
   setIoInstance
 } = require("./controller/bookingapi");
 
 dotenv.config();
 
 const app = express();
+
+/* =========================
+   MIDDLEWARE
+========================= */
+
+// Parse JSON
 app.use(express.json());
+
+// Parse form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+// CORS
 app.use(cors());
+
+/* =========================
+   INVALID JSON GUARD
+========================= */
+
+app.use((err, req, res, next) => {
+
+  if (
+    err instanceof SyntaxError &&
+    err.status === 400 &&
+    "body" in err
+  ) {
+
+    console.error("INVALID JSON:", err.message);
+
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON payload"
+    });
+  }
+
+  next();
+});
+
+/* =========================
+   ROUTES
+========================= */
 
 app.use("/api", require("./route/route"));
 app.use("/api", require("./route/websocket"));
 app.use("/api", require("./route/bookingapi"));
 app.use("/api", require("./route/driverprofile"));
 
+/* =========================
+   ENV LOGS
+========================= */
 
 console.log("MAIL_USER:", process.env.MAIL_USER);
 console.log("MAIL_PASS exists:", !!process.env.MAIL_PASS);
 
-
+/* =========================
+   MONGODB
+========================= */
 
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .then(() => {
+    console.log("MongoDB Connected");
+  })
+  .catch((err) => {
+    console.error("MongoDB Error:", err);
+  });
 
+/* =========================
+   HTTP SERVER
+========================= */
 
 const server = http.createServer(app);
 
-// 🔥 ATTACH SOCKET.IO
+/* =========================
+   SOCKET.IO
+========================= */
+
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
-  },
+    methods: ["GET", "POST"]
+  }
 });
 
-// Set io instance for booking controller
+// Set socket instance
 setIoInstance(io);
 
-// ===============================
-// SOCKET LOGIC
-// ===============================
+/* =========================
+   SOCKET EVENTS
+========================= */
+
 io.on("connection", (socket) => {
+
   console.log("Socket connected:", socket.id);
 
   socket.on("driverOnline", (driverId) => {
@@ -80,12 +130,27 @@ io.on("connection", (socket) => {
   });
 
   socket.on("error", (error) => {
-    console.error("Socket error:", error);
+    console.error("Socket Error:", error);
   });
 });
 
-// Server
+/* =========================
+   HEALTH CHECK
+========================= */
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server running successfully"
+  });
+});
+
+/* =========================
+   SERVER START
+========================= */
+
 const PORT = process.env.PORT || 4000;
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
