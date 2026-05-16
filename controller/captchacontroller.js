@@ -1,5 +1,4 @@
 const User = require("../model/captchamodel");
-const nodemailer = require("nodemailer");
 
 // =========================
 // GENERATE 6-DIGIT CAPTCHA
@@ -7,41 +6,6 @@ const nodemailer = require("nodemailer");
 const generateCaptcha = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
-
-// =========================
-// NODEMAILER TRANSPORTER
-// =========================
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // IMPORTANT for port 587
-
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS
-  },
-
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-// =========================
-// VERIFY SMTP CONNECTION
-// =========================
-transporter.verify((error, success) => {
-
-  if (error) {
-    console.error("SMTP VERIFY ERROR:", error);
-  } else {
-    console.log("SMTP READY");
-  }
-
-});
 
 // =========================
 // SEND CAPTCHA
@@ -88,71 +52,12 @@ exports.sendCaptcha = async (req, res) => {
       }
     );
 
-    // =========================
-    // EMAIL TEMPLATE
-    // =========================
-    const mailOptions = {
-      from: `"${process.env.APP_NAME}" <${process.env.MAIL_USER}>`,
-      to: email,
-      subject: `${process.env.APP_NAME} - Verification Code`,
-
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-
-          <h2>Email Verification</h2>
-
-          <p>Your verification code is:</p>
-
-          <h1 style="
-            background:#f4f4f4;
-            display:inline-block;
-            padding:10px 20px;
-            border-radius:5px;
-            letter-spacing:4px;
-          ">
-            ${captcha}
-          </h1>
-
-          <p>
-            This code will expire in
-            <b>${expiryMinutes} minutes</b>.
-          </p>
-
-          <p>
-            If you did not request this,
-            please ignore this email.
-          </p>
-
-        </div>
-      `
-    };
-
-    // =========================
-    // SEND EMAIL
-    // =========================
-    try {
-
-      const info = await transporter.sendMail(mailOptions);
-
-      console.log("MAIL SENT:", info.response);
-
-      // SUCCESS RESPONSE
-      return res.status(200).json({
-        success: true,
-        message: "Captcha sent successfully",
-        captcha // REMOVE IN PRODUCTION
-      });
-
-    } catch (mailError) {
-
-      console.error("MAIL ERROR:", mailError);
-
-      return res.status(500).json({
-        success: false,
-        message: "Email sending failed"
-      });
-
-    }
+    // SUCCESS RESPONSE
+    return res.status(200).json({
+      success: true,
+      message: "Captcha generated successfully",
+      captcha
+    });
 
   } catch (error) {
 
