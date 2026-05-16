@@ -42,6 +42,8 @@ router.post("/location/pickupanddrop", locationcontroller);
 //catcha verify//
 
 router.post("/sendcaptcha", generateCaptcha.sendCaptcha);
+
+router.post("/verifycaptcha",generateCaptcha.verifyCaptcha);
 //payment route//
 
 router.post("/payment",paymentMethod);

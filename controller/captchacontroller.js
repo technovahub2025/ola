@@ -63,3 +63,62 @@ exports.sendCaptcha = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.verifyCaptcha = async (req, res) => {
+  try {
+    const { email, captcha } = req.body;
+
+    // check input
+    if (!email || !captcha) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and captcha are required"
+      });
+    }
+
+    // find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // check captcha
+    if (user.captcha !== captcha) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid captcha"
+      });
+    }
+
+    // check expiry
+    if (new Date() > user.expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: "Captcha expired"
+      });
+    }
+
+    // clear captcha after success
+    user.captcha = null;
+    user.expiresAt = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Captcha verified successfully"
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
