@@ -49,7 +49,9 @@ const addUser = async (req, res) => {
       rating,
       image,
       experience,
-      role
+      role,
+      email,
+      password
     } = req.body;
 
     // Role validation
@@ -77,7 +79,9 @@ const addUser = async (req, res) => {
       rating,
       image,
       experience,
-      role
+      role,
+      email,
+      password
     });
 
     res.status(201).json({
@@ -105,7 +109,9 @@ const updateUser = async (req, res) => {
       rating,
       image,
       experience,
-      role
+      role,
+      email,
+      password
     } = req.body;
 
     const user = await User.findByIdAndUpdate(
@@ -117,7 +123,9 @@ const updateUser = async (req, res) => {
         rating,
         image,
         experience,
-        role
+        role,
+        email,
+        password
       },
       { new: true, runValidators: true }
     );
