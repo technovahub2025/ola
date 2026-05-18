@@ -3,49 +3,78 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/registermodel");
 
 const login = async (req, res) => {
+
   try {
+
     const { email, password } = req.body;
 
+    // VALIDATION
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+
+      return res.status(400).json({
+        message: "All fields are required"
+      });
+
     }
 
-    // Fetch only required fields
-    const user = await User.findOne({ email })
-      .select("+password name email phone");
+    // STATIC CREDENTIALS
+    const STATIC_EMAIL = "user@gmail.com";
+    const STATIC_PASSWORD = "user123";
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    // CHECK EMAIL
+    if (email !== STATIC_EMAIL) {
+
+      return res.status(400).json({
+        message: "Invalid email"
+      });
+
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    // CHECK PASSWORD
+    if (password !== STATIC_PASSWORD) {
+
+      return res.status(400).json({
+        message: "Invalid password"
+      });
+
     }
 
+    // GENERATE TOKEN
     const token = jwt.sign(
-      { userId: user._id },
+      {
+        email: STATIC_EMAIL,
+        role: "user"
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      {
+        expiresIn: "7d"
+      }
     );
 
-    res.status(200).json({
+    // SUCCESS RESPONSE
+    return res.status(200).json({
+      success: true,
       message: "Login successful",
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-      },
+        email: STATIC_EMAIL,
+        role: "user"
+      }
     });
+
   } catch (error) {
-    res.status(500).json({
+
+    return res.status(500).json({
+      success: false,
       message: "Login failed",
-      error: error.message,
+      error: error.message
     });
+
   }
+
 };
+
+module.exports = login;
 
 const forgotPassword = async (req, res) => {
   try {
