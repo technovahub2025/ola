@@ -14,9 +14,10 @@ const login = async (req, res) => {
       });
     }
 
-    // CHECK USER IN DATABASE
-    const user = await User.findOne({ email });
+    // GET USER WITH PASSWORD
+    const user = await User.findOne({ email }).select("+password");
 
+    // CHECK USER
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -24,7 +25,15 @@ const login = async (req, res) => {
       });
     }
 
-    // CHECK PASSWORD
+    // CHECK PASSWORD EXISTS
+    if (!user.password) {
+      return res.status(500).json({
+        success: false,
+        message: "Password not found in database",
+      });
+    }
+
+    // COMPARE PASSWORD
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -47,7 +56,7 @@ const login = async (req, res) => {
       }
     );
 
-    // SUCCESS RESPONSE
+    // SUCCESS
     return res.status(200).json({
       success: true,
       message: "Login successful",
