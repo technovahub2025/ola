@@ -75,6 +75,9 @@ exports.sendCaptcha = async (req, res) => {
 // =========================
 // VERIFY CAPTCHA
 // =========================
+// =========================
+// VERIFY CAPTCHA
+// =========================
 exports.verifyCaptcha = async (req, res) => {
 
   try {
@@ -92,14 +95,13 @@ exports.verifyCaptcha = async (req, res) => {
 
     }
 
-    
+    // FIND USER BY CAPTCHA
+    const user = await User.findOne({ captcha });
+
     // USER NOT FOUND
-    
+    if (!user) {
 
-    // INVALID CAPTCHA
-    if (user.captcha !== captcha) {
-
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: "Invalid captcha"
       });
