@@ -80,30 +80,21 @@ exports.verifyCaptcha = async (req, res) => {
   try {
 
     // SAFE BODY READ
-    const { email, captcha } = req.body || {};
+    const { captcha } = req.body || {};
 
     // VALIDATION
-    if (!email || !captcha) {
+    if (!captcha) {
 
       return res.status(400).json({
         success: false,
-        message: "Email and captcha are required"
+        message: "Captcha is required"
       });
 
     }
 
-    // FIND USER
-    const user = await User.findOne({ email });
-
+    
     // USER NOT FOUND
-    if (!user) {
-
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
-
-    }
+    
 
     // INVALID CAPTCHA
     if (user.captcha !== captcha) {
