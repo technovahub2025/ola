@@ -79,52 +79,44 @@ exports.sendCaptcha = async (req, res) => {
 // VERIFY CAPTCHA
 // =========================
 exports.verifyCaptcha = async (req, res) => {
-
   try {
 
-    // SAFE BODY READ
+    console.log("BODY:", req.body);
+
     const { captcha } = req.body || {};
 
-    // VALIDATION
     if (!captcha) {
-
       return res.status(400).json({
         success: false,
         message: "Captcha is required"
       });
-
     }
 
-    // FIND USER BY CAPTCHA
+    console.log("SEARCH CAPTCHA:", captcha);
+
     const user = await User.findOne({ captcha });
 
-    // USER NOT FOUND
-    if (!user) {
+    console.log("FOUND USER:", user);
 
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "Invalid captcha"
       });
-
     }
 
-    // EXPIRED CAPTCHA
     if (new Date() > user.expiresAt) {
-
       return res.status(400).json({
         success: false,
         message: "Captcha expired"
       });
-
     }
 
-    // CLEAR CAPTCHA
     user.captcha = null;
     user.expiresAt = null;
 
     await user.save();
 
-    // SUCCESS
     return res.status(200).json({
       success: true,
       message: "Captcha verified successfully"
@@ -136,9 +128,8 @@ exports.verifyCaptcha = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Server error"
+      message: error.message
     });
 
   }
-
 };
